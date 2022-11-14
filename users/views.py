@@ -63,8 +63,15 @@ class Users_Update_View(UpdateView):
 
     def patch(self, request, *args, **kwargs):
         apd_data = json.loads(request.body)
+        locations = apd_data["locations"]
+        apd_data.pop("locations")
         self.model.objects.filter(id=kwargs["pk"]).update(**apd_data)
+
         upd_obj = self.get_object()
+        upd_obj.locations.clear()
+        for location_name in locations:
+            location, _ = Location.objects.get_or_create(name=location_name)
+            upd_obj.locations.add(location)
         dict_obj = vars(upd_obj)
         dict_obj.update({"locations": list(map(str, upd_obj.locations.all()))})
         try:
